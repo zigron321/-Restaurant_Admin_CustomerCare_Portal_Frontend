@@ -14,7 +14,7 @@ import { useToast } from '@/components/ui/toast';
 import { ELIGIBLE_KEY, MY_REVIEWS_KEY, useEligibleOrders, useMyReviews } from '@/hooks/use-reviews';
 import { reviewsApi, type EligibleOrder, type Review } from '@/lib/api/reviews';
 import { parseError } from '@/lib/errors';
-import { hasReply, reviewsLoadMessage } from '@/lib/reviews';
+import { hasReply } from '@/lib/reviews';
 import { timeAgo } from '@/lib/time-ago';
 
 const date = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -64,7 +64,7 @@ export function MyReviewsView() {
         {todo.isPending ? (
           <div className="mr-list" aria-busy="true" aria-label="Loading orders">{[0, 1].map((i) => <div key={i} className="sv-skel" style={{ height: 66, borderRadius: 16 }} />)}</div>
         ) : todo.isError ? (
-          <div className="sv-acct-inline"><Alert>{reviewsLoadMessage(todo.error)}</Alert><Button variant="ghost" onClick={() => void todo.refetch()}>Try again</Button></div>
+          <div className="sv-acct-inline"><Alert>{parseError(todo.error).display}</Alert><Button variant="ghost" onClick={() => void todo.refetch()}>Try again</Button></div>
         ) : orders.length === 0 ? (
           <div className="card mr-todo"><div><strong>You’re all caught up</strong><span>Delivered orders you haven’t rated will show up here.</span></div><Link href="/customer/restaurants" className="btn btn-ghost">Order something</Link></div>
         ) : (
@@ -84,7 +84,7 @@ export function MyReviewsView() {
         {mine.isPending ? (
           <div className="mr-list" aria-busy="true" aria-label="Loading your reviews">{[0, 1].map((i) => <div key={i} className="sv-skel" style={{ height: 120, borderRadius: 16 }} />)}</div>
         ) : mine.isError ? (
-          <div className="sv-acct-inline"><Alert>{reviewsLoadMessage(mine.error)}</Alert><Button variant="ghost" onClick={() => void mine.refetch()}>Try again</Button></div>
+          <div className="sv-acct-inline"><Alert>{parseError(mine.error).display}</Alert><Button variant="ghost" onClick={() => void mine.refetch()}>Try again</Button></div>
         ) : reviews.length === 0 ? (
           <div className="sv-state" style={{ paddingTop: 30, paddingBottom: 30 }}>
             <div className="emoji" aria-hidden="true">⭐</div>
