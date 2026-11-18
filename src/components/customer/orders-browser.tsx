@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { OrderCard, OrderCardSkeleton } from './order-card';
 import { Alert } from '@/components/ui/alert';
+import { RestaurantFilter } from './restaurant-filter';
 import { Button } from '@/components/ui/submit-button';
 import { ordersApi, type OrderStatus } from '@/lib/api/orders';
 import type { OrderType } from '@/lib/api/cart';
@@ -25,6 +26,7 @@ export function OrdersBrowser() {
   const typeParam = params.get('type');
   const status = STATUSES.includes(statusParam as OrderStatus) ? (statusParam as OrderStatus) : undefined;
   const type = TYPES.includes(typeParam as OrderType) ? (typeParam as OrderType) : undefined;
+  const restaurant = params.get('restaurant') ?? '';
   const page = Math.max(1, parseInt(params.get('page') ?? '1', 10) || 1);
 
   // Two quick changes (e.g. status then type) must build on each other, not on the not-yet-updated URL.
@@ -46,8 +48,8 @@ export function OrdersBrowser() {
   }
 
   const query = useQuery({
-    queryKey: ['orders', { status, type, page }],
-    queryFn: () => ordersApi.list({ page, page_size: PAGE_SIZE, status, order_type: type }),
+    queryKey: ['orders', { status, type, restaurant, page }],
+    queryFn: () => ordersApi.list({ page, page_size: PAGE_SIZE, status, order_type: type, restaurant: restaurant || undefined }),
     placeholderData: keepPreviousData,
     // Orders in progress change status; keep the list honest while any are showing.
     refetchInterval: (q) => (q.state.data?.orders.some((o) => !isFinished(o.status)) ? 30_000 : false),
@@ -55,7 +57,7 @@ export function OrdersBrowser() {
 
   const data = query.data;
   const error = query.error ? parseError(query.error) : null;
-  const filtersActive = !!status || !!type;
+  const filtersActive = !!status || !!type || !!restaurant;
 
   // A stale ?page= beyond the last page is a 404: fall back to page 1.
   useEffect(() => {
@@ -94,6 +96,7 @@ export function OrdersBrowser() {
             ))}
           </select>
         </label>
+        <RestaurantFilter value={restaurant} onChange={(id) => update({ restaurant: id || null })} />
         <span className="spacer" />
         {filtersActive && (
           <button type="button" className="link" onClick={() => router.replace(pathname, { scroll: false })}>

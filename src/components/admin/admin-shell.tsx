@@ -5,7 +5,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { SafeImage } from '@/components/ui/safe-image';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { RestaurantSwitcher } from './restaurant-switcher';
 import { useAuth } from '@/context/auth-context';
+import { useRestaurants } from '@/context/restaurant-context';
 import { initials } from '@/lib/format';
 import { ADMIN_LOGIN, ROLE_LABEL } from '@/lib/roles';
 
@@ -23,6 +25,7 @@ export const ADMIN_NAV: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/owner', icon: '⊞', text: 'Dashboard', ready: true },
       { href: '/owner/tickets', icon: '🎫', text: 'Tickets', ready: true },
+      { href: '/owner/restaurants', icon: '🏪', text: 'My restaurants', ready: true },
     ],
   },
   {
@@ -69,6 +72,7 @@ export const SUPER_NAV: { label: string; items: NavItem[] }[] = [
 const isActive = (pathname: string, href: string) =>
   href === '/owner' || href === '/admin' ? pathname === href : pathname === href || pathname.startsWith(href + '/');
 
+
 function titleFor(pathname: string, nav = ADMIN_NAV) {
   for (const s of nav) for (const i of s.items) if (isActive(pathname, i.href)) return i.text;
   return 'Dashboard';
@@ -81,6 +85,14 @@ export function AdminShell({ children, area = 'owner' }: { children: ReactNode; 
   const { user, logout } = useAuth();
   const [navOpen, setNavOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  const { restaurants, ready, failed } = useRestaurants();
+  const needsFirstRestaurant = area === 'owner' && user?.role === 'RESTAURANT_OWNER' && ready && !failed && restaurants.length === 0;
+  const onRestaurantPages = pathname.startsWith('/owner/restaurants');
+  // A brand-new owner has nothing to manage yet: start with creating the first restaurant.
+  useEffect(() => {
+    if (needsFirstRestaurant && !onRestaurantPages) router.replace('/owner/restaurants/new');
+  }, [needsFirstRestaurant, onRestaurantPages, router]);
 
   const displayName = user ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email : '';
 
@@ -107,6 +119,8 @@ export function AdminShell({ children, area = 'owner' }: { children: ReactNode; 
             </div>
           </div>
         </div>
+
+        <RestaurantSwitcher />
 
         {nav.map((section) => (
           <div className="ad-nav-section" key={section.label}>
@@ -177,7 +191,7 @@ export function AdminShell({ children, area = 'owner' }: { children: ReactNode; 
         </header>
 
         <main className="ad-content" id="main">
-          <div className="ad-container">{children}</div>
+          <div className="ad-container">{needsFirstRestaurant && !onRestaurantPages ? null : children}</div>
         </main>
       </div>
     </div>

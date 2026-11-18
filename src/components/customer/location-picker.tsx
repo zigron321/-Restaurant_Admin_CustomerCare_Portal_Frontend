@@ -61,8 +61,8 @@ export function LocationPicker({ value, onChange, error }: { value: LatLng | nul
         place(p);
         changeRef.current(p);
       });
-      setTimeout(() => map.invalidateSize(), 150);
-      cleanup = () => { map.remove(); state.current = null; };
+      const timer = setTimeout(() => map.invalidateSize(), 150);
+      cleanup = () => { clearTimeout(timer); map.remove(); state.current = null; };
     });
     return () => { dead = true; cleanup?.(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

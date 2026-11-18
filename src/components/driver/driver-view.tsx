@@ -3,6 +3,7 @@
 import './driver.css';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { RestaurantSwitcher } from '@/components/admin/restaurant-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useToast } from '@/components/ui/toast';
 import { useAuth } from '@/context/auth-context';
@@ -143,6 +144,7 @@ export function DriverView() {
             <small>{name}</small>
           </div>
         </div>
+        <RestaurantSwitcher variant="bar" />
         <ThemeToggle className="dr-icon" />
         <button type="button" className="dr-btn" onClick={async () => { await logout(); router.replace('/login'); }}>Sign out</button>
       </header>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ConfirmDialog } from './cart-line';
+import { RestaurantFilter } from './restaurant-filter';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/submit-button';
 import { useToast } from '@/components/ui/toast';
@@ -54,8 +55,9 @@ export function MyReservationsView() {
   const [tab, setTab] = useState<Tab | null>(null);
   const [toCancel, setToCancel] = useState<Reservation | null>(null);
   const [busy, setBusy] = useState(false);
+  const [restaurant, setRestaurant] = useState('');
 
-  const all = useMemo(() => q.data?.reservations ?? [], [q.data]);
+  const all = useMemo(() => (q.data?.reservations ?? []).filter((r) => !restaurant || r.restaurant === restaurant), [q.data, restaurant]);
   const counts = useMemo(() => ({ upcoming: all.filter((r) => tabOf(r, now) === 'upcoming').length, past: all.filter((r) => tabOf(r, now) === 'past').length, cancelled: all.filter((r) => tabOf(r, now) === 'cancelled').length }), [all, now]);
   // Open on "Upcoming", or on the first tab that has something when there is nothing coming up.
   const active: Tab = tab ?? (counts.upcoming > 0 || all.length === 0 ? 'upcoming' : counts.past > 0 ? 'past' : 'cancelled');
@@ -88,6 +90,10 @@ export function MyReservationsView() {
         <Link href="/customer/reservations/new" className="btn btn-primary">+ Book a table</Link>
       </div>
 
+      <div className="sv-filterbar" role="group" aria-label="Filters">
+        <RestaurantFilter value={restaurant} onChange={setRestaurant} />
+      </div>
+
       {q.isPending ? (
         <div className="rv-cards" aria-busy="true" aria-label="Loading your reservations">
           {Array.from({ length: 3 }, (_, i) => <div key={i} className="sv-skel" style={{ height: 110, borderRadius: 16 }} />)}
@@ -100,8 +106,8 @@ export function MyReservationsView() {
       ) : all.length === 0 ? (
         <div className="sv-state">
           <div className="emoji" aria-hidden="true">📅</div>
-          <h2>No reservations yet</h2>
-          <p>Pick a restaurant, choose a time, and we’ll hold a table for you.</p>
+          <h2>{restaurant ? 'No reservations at this restaurant' : 'No reservations yet'}</h2>
+          <p>{restaurant ? 'Try another restaurant, or book a table here.' : 'Pick a restaurant, choose a time, and we’ll hold a table for you.'}</p>
           <Link href="/customer/reservations/new" className="btn btn-primary">Book a table</Link>
         </div>
       ) : (

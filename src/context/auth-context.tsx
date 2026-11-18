@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { authApi } from '@/lib/api/auth';
+import { setActiveRestaurantId } from '@/lib/active-restaurant';
 import { clearAuthCookies, getRefreshToken, setRoleCookie, setTokens } from '@/lib/cookies';
 import type { RegisterInput, User } from '@/lib/types';
 
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading');
 
   const establish = useCallback((access: string, refresh: string, u: User) => {
+    setActiveRestaurantId(null); // a new sign-in starts on that person's own default restaurant
     setTokens(access, refresh);
     setRoleCookie(u.role);
     setUser(u);
@@ -76,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await authApi.logout();
     clearAuthCookies();
+    setActiveRestaurantId(null);
     setUser(null);
     setStatus('anonymous');
   }, []);

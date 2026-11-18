@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OrderTicket } from './order-ticket';
+import { RestaurantSwitcher } from '@/components/admin/restaurant-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useToast } from '@/components/ui/toast';
 import { useAuth } from '@/context/auth-context';
@@ -225,6 +226,8 @@ export function KdsView({ mode }: { mode: 'staff' | 'owner' }) {
             </span>
           </div>
         </div>
+
+        {mode === 'staff' && <RestaurantSwitcher variant="bar" />}
 
         <div className="kds-pills" aria-label="Queue">
           <span className={`kds-pill ${fresh.size ? 'is-flash' : ''}`}><b>{orders?.filter((o) => o.status === 'CONFIRMED' || o.status === 'PLACED').length ?? 0}</b> new</span>

@@ -19,8 +19,8 @@ export function RestaurantMap({ lat, lng, name, address }: { lat: number; lng: n
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
       const icon = L.divIcon({ className: 'lp-pin', html: '<span>📍</span>', iconSize: [32, 32], iconAnchor: [16, 30] });
       L.marker([lat, lng], { icon, title: name, keyboard: false }).addTo(map);
-      setTimeout(() => map.invalidateSize(), 150);
-      cleanup = () => map.remove();
+      const timer = setTimeout(() => map.invalidateSize(), 150);
+      cleanup = () => { clearTimeout(timer); map.remove(); };
     });
     return () => { dead = true; cleanup?.(); };
   }, [lat, lng, name]);

@@ -1,6 +1,7 @@
 import { loginPathFor } from './roles';
 import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
 import { API_URL } from './constants';
+import { getActiveRestaurantId, setActiveRestaurantId } from './active-restaurant';
 import { clearAuthCookies, getAccessToken, getRefreshToken, setTokens } from './cookies';
 
 /** No auth, no interceptors: login, register, refresh, password reset, email verification. */
@@ -56,6 +57,7 @@ export async function ensureAccessToken(): Promise<string | null> {
 
 function endSession() {
   clearAuthCookies();
+  setActiveRestaurantId(null);
   if (typeof window !== 'undefined' && !/^\/(login|register|forgot-password|reset-password|verify-email|owner\/login)/.test(window.location.pathname)) {
     window.location.assign(`${loginPathFor(window.location.pathname)}?expired=1`);
   }
@@ -64,6 +66,9 @@ function endSession() {
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const token = await ensureAccessToken();
   if (token) config.headers.set('Authorization', `Bearer ${token}`);
+  // Owners, kitchen and delivery staff and the platform admin work on one restaurant at a time.
+  const restaurantId = getActiveRestaurantId();
+  if (restaurantId) config.params = { ...(config.params ?? {}), active_restaurant: restaurantId };
   return config;
 });
 

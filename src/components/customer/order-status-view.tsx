@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { RestaurantFilter } from './restaurant-filter';
 import { StatusProgress } from './status-progress';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/submit-button';
@@ -34,6 +36,7 @@ function LiveOrder({ o }: { o: Order }) {
 }
 
 export function OrderStatusView() {
+  const [restaurant, setRestaurant] = useState('');
   const q = useQuery({
     queryKey: ['orders', 'status-board'],
     queryFn: () => ordersApi.list({ page: 1, page_size: 50 }),
@@ -41,7 +44,8 @@ export function OrderStatusView() {
     refetchOnWindowFocus: true,
   });
   const error = q.error ? parseError(q.error) : null;
-  const all = q.data?.orders ?? [];
+  const everything = q.data?.orders ?? [];
+  const all = restaurant ? everything.filter((o) => o.restaurant === restaurant) : everything;
   const live = all.filter((o) => !isFinished(o.status));
   const recent = all.filter((o) => isFinished(o.status)).slice(0, 3);
 
@@ -50,6 +54,10 @@ export function OrderStatusView() {
       <div>
         <h1 style={{ fontSize: 30, fontWeight: 800 }}>Order status</h1>
         <p style={{ opacity: 0.75 }}>Where your food is right now: cooking, ready, on the way or delivered. Updates every few seconds.</p>
+      </div>
+
+      <div className="sv-filterbar" role="group" aria-label="Filters">
+        <RestaurantFilter value={restaurant} onChange={setRestaurant} />
       </div>
 
       {error ? (

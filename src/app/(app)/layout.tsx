@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { RestaurantProvider } from '@/context/restaurant-context';
 import { homeForRole, loginPathFor } from '@/lib/roles';
 
 /** Client-side guard behind the middleware: waits for the session, then enforces the role's own area. */
@@ -27,5 +28,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  return <>{children}</>;
+  return <RestaurantProvider>{children}</RestaurantProvider>;
 }

@@ -51,6 +51,8 @@ export interface OrderListParams {
   page_size?: number;
   status?: OrderStatus;
   order_type?: OrderType;
+  /** Only this restaurant's orders. */
+  restaurant?: string;
 }
 
 export interface OrderPage {
