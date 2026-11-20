@@ -4,6 +4,8 @@ import type { Role } from './types';
 export const ROLE_HOME: Record<Role, string> = {
   CUSTOMER: '/customer',
   RESTAURANT_OWNER: '/owner',
+  // A manager uses the owner's screens (for their own restaurant), so the home is the same area.
+  RESTAURANT_MANAGER: '/owner',
   RESTAURANT_STAFF: '/kitchen',
   DELIVERY_STAFF: '/driver',
   SUPER_ADMIN: '/admin',
@@ -12,6 +14,7 @@ export const ROLE_HOME: Record<Role, string> = {
 export const ROLE_LABEL: Record<Role, string> = {
   CUSTOMER: 'Customer',
   RESTAURANT_OWNER: 'Restaurant Owner',
+  RESTAURANT_MANAGER: 'Restaurant Manager',
   RESTAURANT_STAFF: 'Kitchen Staff',
   DELIVERY_STAFF: 'Delivery Driver',
   SUPER_ADMIN: 'Super Admin',

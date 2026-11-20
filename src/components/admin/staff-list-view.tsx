@@ -7,14 +7,19 @@ import { QueryGate } from './settings-kit';
 import { PermissionChips, RoleBadge, StaffAvatar, StaffFrame } from './staff-kit';
 import { ConfirmDialog } from '@/components/customer/cart-line';
 import { useToast } from '@/components/ui/toast';
+import { useAuth } from '@/context/auth-context';
 import { staffError, useStaff, useStaffCache } from '@/hooks/use-admin-staff';
 import { adminStaffApi, type StaffMember } from '@/lib/api/admin-staff';
-import { displayName, ROLES } from '@/lib/staff';
+import { displayName, MANAGER_CAN_HANDLE, ROLES } from '@/lib/staff';
 import { timeAgo } from '@/lib/time-ago';
 
 function Team({ members }: { members: StaffMember[] }) {
   const { push } = useToast();
   const cache = useStaffCache();
+  const { user } = useAuth();
+  // A manager can only change kitchen and delivery staff; everyone else on the team is the owner's to manage.
+  const isManager = user?.role === 'RESTAURANT_MANAGER';
+  const canHandle = (m: StaffMember) => !isManager || MANAGER_CAN_HANDLE.includes(m.role);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
   const [status, setStatus] = useState<'' | 'active' | 'inactive'>('');
@@ -75,7 +80,7 @@ function Team({ members }: { members: StaffMember[] }) {
       active="team"
       title="Team"
       description={members.length ? `${members.length} ${members.length === 1 ? 'person' : 'people'}, ${activeCount} active.` : 'The people who work at your restaurant.'}
-      actions={<Link href="/owner/staff/new" className="btn btn-primary">+ Add staff</Link>}
+      actions={<Link href="/owner/staff/new" className="btn btn-primary">{isManager ? '+ Add kitchen / delivery staff' : '+ Add staff'}</Link>}
     >
       {members.length === 0 ? (
         <div className="card ad-empty">
@@ -138,9 +143,15 @@ function Team({ members }: { members: StaffMember[] }) {
                       <PermissionChips perms={m} />
                     </div>
                     <div className="st-tools">
-                      <MiniSwitch checked={m.is_active} label={`${displayName(m)} is active`} disabled={busy.has(m.id)} onChange={(v) => setActive(m, v)} />
-                      <Link href={`/owner/staff/${m.id}`} className="ad-link" aria-label={`Edit ${displayName(m)}`}>Edit</Link>
-                      <button type="button" className="ad-link danger" aria-label={`Remove ${displayName(m)}`} onClick={() => setRemoving(m)}>Remove</button>
+                      {canHandle(m) ? (
+                        <>
+                          <MiniSwitch checked={m.is_active} label={`${displayName(m)} is active`} disabled={busy.has(m.id)} onChange={(v) => setActive(m, v)} />
+                          <Link href={`/owner/staff/${m.id}`} className="ad-link" aria-label={`Edit ${displayName(m)}`}>Edit</Link>
+                          <button type="button" className="ad-link danger" aria-label={`Remove ${displayName(m)}`} onClick={() => setRemoving(m)}>Remove</button>
+                        </>
+                      ) : (
+                        <span className="ad-muted">Owner only</span>
+                      )}
                     </div>
                   </li>
                 ))}

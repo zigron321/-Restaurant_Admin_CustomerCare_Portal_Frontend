@@ -1,6 +1,7 @@
 export type Role =
   | 'CUSTOMER'
   | 'RESTAURANT_OWNER'
+  | 'RESTAURANT_MANAGER'
   | 'RESTAURANT_STAFF'
   | 'DELIVERY_STAFF'
   | 'SUPER_ADMIN';

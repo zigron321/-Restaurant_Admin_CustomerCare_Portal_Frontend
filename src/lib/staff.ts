@@ -20,6 +20,9 @@ export const ROLES: { id: StaffRole; label: string; blurb: string; defaults: Sta
   { id: 'STOCK_STAFF', label: 'Stock staff', blurb: 'Keeps the menu and availability up to date.', defaults: { ...none, can_manage_menu: true } },
 ];
 
+/** A restaurant manager may only add, change and remove these roles (the owner can handle everyone). */
+export const MANAGER_CAN_HANDLE: StaffRole[] = ['KITCHEN_STAFF', 'DELIVERY_STAFF'];
+
 export const roleLabel = (r: string) => ROLES.find((x) => x.id === r)?.label ?? r;
 export const roleDefaults = (r: StaffRole): StaffPermissions => ({ ...(ROLES.find((x) => x.id === r)?.defaults ?? none) });
 

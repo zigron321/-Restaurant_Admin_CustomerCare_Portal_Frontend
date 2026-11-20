@@ -79,16 +79,26 @@ function titleFor(pathname: string, nav = ADMIN_NAV) {
 }
 
 export function AdminShell({ children, area = 'owner' }: { children: ReactNode; area?: 'owner' | 'platform' }) {
-  const nav = area === 'platform' ? SUPER_NAV : ADMIN_NAV;
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  // A manager runs one restaurant for the owner: no "My restaurants" (they can't add restaurants).
+  const isManager = user?.role === 'RESTAURANT_MANAGER';
+  const nav = area === 'platform'
+    ? SUPER_NAV
+    : isManager
+      ? ADMIN_NAV.map((s) => ({ ...s, items: s.items.filter((i) => i.href !== '/owner/restaurants') }))
+      : ADMIN_NAV;
   const [navOpen, setNavOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
   const { restaurants, ready, failed } = useRestaurants();
   const needsFirstRestaurant = area === 'owner' && user?.role === 'RESTAURANT_OWNER' && ready && !failed && restaurants.length === 0;
   const onRestaurantPages = pathname.startsWith('/owner/restaurants');
+  // Managers can't open the add / list-restaurants pages, even by typing the address.
+  useEffect(() => {
+    if (isManager && onRestaurantPages) router.replace('/owner');
+  }, [isManager, onRestaurantPages, router]);
   // A brand-new owner has nothing to manage yet: start with creating the first restaurant.
   useEffect(() => {
     if (needsFirstRestaurant && !onRestaurantPages) router.replace('/owner/restaurants/new');
@@ -191,7 +201,7 @@ export function AdminShell({ children, area = 'owner' }: { children: ReactNode; 
         </header>
 
         <main className="ad-content" id="main">
-          <div className="ad-container">{needsFirstRestaurant && !onRestaurantPages ? null : children}</div>
+          <div className="ad-container">{(needsFirstRestaurant && !onRestaurantPages) || (isManager && onRestaurantPages) ? null : children}</div>
         </main>
       </div>
     </div>

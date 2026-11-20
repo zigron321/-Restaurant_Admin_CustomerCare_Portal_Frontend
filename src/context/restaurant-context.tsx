@@ -26,7 +26,7 @@ interface RestaurantContextValue {
 
 const Ctx = createContext<RestaurantContextValue | null>(null);
 
-const TEAM_ROLES = ['RESTAURANT_OWNER', 'RESTAURANT_STAFF', 'DELIVERY_STAFF', 'SUPER_ADMIN'];
+const TEAM_ROLES = ['RESTAURANT_OWNER', 'RESTAURANT_MANAGER', 'RESTAURANT_STAFF', 'DELIVERY_STAFF', 'SUPER_ADMIN'];
 
 /**
  * Wraps the signed-in area. For owners, kitchen/delivery staff and the platform admin it loads their restaurants,

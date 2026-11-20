@@ -14,7 +14,7 @@ import { useAuth } from '@/context/auth-context';
 import { staffError, useStaff, useStaffCache } from '@/hooks/use-admin-staff';
 import { useUnsavedWarning } from '@/hooks/use-restaurant-settings';
 import { adminStaffApi, type StaffMember, type StaffPatch, type StaffPermissions, type StaffRole } from '@/lib/api/admin-staff';
-import { PERMISSIONS, ROLES, displayName, pickPermissions, roleDefaults, roleLabel, samePermissions } from '@/lib/staff';
+import { MANAGER_CAN_HANDLE, PERMISSIONS, ROLES, displayName, pickPermissions, roleDefaults, roleLabel, samePermissions } from '@/lib/staff';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,6 +23,10 @@ function Editor({ member, members }: { member: StaffMember | null; members: Staf
   const { user } = useAuth();
   const { push } = useToast();
   const cache = useStaffCache();
+  // A manager can only handle kitchen and delivery staff; the owner handles everyone.
+  const isManager = user?.role === 'RESTAURANT_MANAGER';
+  const roleChoices = isManager ? ROLES.filter((r) => MANAGER_CAN_HANDLE.includes(r.id)) : ROLES;
+  const locked = isManager && !!member && !MANAGER_CAN_HANDLE.includes(member.role);
 
   const [baseline, setBaseline] = useState(() => ({ role: (member?.role ?? 'KITCHEN_STAFF') as StaffRole, perms: member ? pickPermissions(member) : roleDefaults('KITCHEN_STAFF') }));
   const [email, setEmail] = useState('');
@@ -120,6 +124,21 @@ function Editor({ member, members }: { member: StaffMember | null; members: Staf
     }
   }
 
+  if (locked && member) {
+    return (
+      <>
+        <Link href="/owner/staff" className="ad-back">← Team</Link>
+        <div className="ad-head"><div><h1>{displayName(member)}</h1><p>{member.user_email}</p></div></div>
+        <div className="card ad-empty" role="status">
+          <div className="ad-empty-icon" aria-hidden="true">🔒</div>
+          <strong>Only the owner can change this person</strong>
+          <span>{displayName(member)} is {roleLabel(member.role).toLowerCase()}. As a manager you can add, change and remove kitchen staff and delivery staff.</span>
+          <Link href="/owner/staff" className="btn btn-primary">Back to the team</Link>
+        </div>
+      </>
+    );
+  }
+
   if (created) {
     return (
       <>
@@ -180,7 +199,7 @@ function Editor({ member, members }: { member: StaffMember | null; members: Staf
           <section className="card ad-card-pad" aria-labelledby="st-role">
             <h2 id="st-role" className="ad-rowhead-title">Role</h2>
             <div className="st-roles" role="radiogroup" aria-labelledby="st-role">
-              {ROLES.map((r) => (
+              {roleChoices.map((r) => (
                 <label key={r.id} className={`st-role-opt ${role === r.id ? 'is-on' : ''}`}>
                   <input type="radio" name="staff-role" value={r.id} checked={role === r.id} onChange={() => chooseRole(r.id)} />
                   <strong>{r.label}</strong>

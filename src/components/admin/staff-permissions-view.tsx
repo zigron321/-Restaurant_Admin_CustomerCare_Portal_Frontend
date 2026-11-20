@@ -5,13 +5,18 @@ import { useState } from 'react';
 import { QueryGate } from './settings-kit';
 import { RoleBadge, StaffAvatar, StaffFrame } from './staff-kit';
 import { useToast } from '@/components/ui/toast';
+import { useAuth } from '@/context/auth-context';
 import { staffError, useStaff, useStaffCache } from '@/hooks/use-admin-staff';
 import { adminStaffApi, type StaffMember, type StaffPermissions } from '@/lib/api/admin-staff';
-import { PERMISSIONS, ROLES, displayName, roleDefaults, samePermissions } from '@/lib/staff';
+import { MANAGER_CAN_HANDLE, PERMISSIONS, ROLES, displayName, roleDefaults, samePermissions } from '@/lib/staff';
 
 function Matrix({ members }: { members: StaffMember[] }) {
   const { push } = useToast();
   const cache = useStaffCache();
+  const { user } = useAuth();
+  // A manager can only change the permissions of kitchen and delivery staff.
+  const isManager = user?.role === 'RESTAURANT_MANAGER';
+  const canHandle = (m: StaffMember) => !isManager || MANAGER_CAN_HANDLE.includes(m.role);
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
 
   async function save(m: StaffMember, patch: Partial<StaffPermissions>, done?: string) {
@@ -109,14 +114,14 @@ function Matrix({ members }: { members: StaffMember[] }) {
                           <input
                             type="checkbox"
                             checked={!!m[p.key]}
-                            disabled={busy.has(m.id)}
+                            disabled={busy.has(m.id) || !canHandle(m)}
                             aria-label={`${p.label} for ${displayName(m)}`}
                             onChange={(e) => save(m, { [p.key]: e.target.checked })}
                           />
                         </td>
                       ))}
                       <td>
-                        {custom && (
+                        {custom && canHandle(m) && (
                           <button type="button" className="ad-link" disabled={busy.has(m.id)} onClick={() => save(m, roleDefaults(m.role), `${displayName(m)} reset to the usual permissions`)}>
                             Reset
                           </button>

@@ -9,6 +9,7 @@ export const priorityBadge = (p: string) => (p === 'URGENT' ? 'badge-crit' : p =
 export const ROLE_NAME: Record<string, string> = {
   CUSTOMER: 'Customer',
   RESTAURANT_OWNER: 'Restaurant owner',
+  RESTAURANT_MANAGER: 'Restaurant manager',
   RESTAURANT_STAFF: 'Restaurant staff',
   DELIVERY_STAFF: 'Delivery staff',
   SUPER_ADMIN: 'Super admin',
@@ -26,7 +27,7 @@ export function matchesRole(u: Pick<PlatformUser, 'role'>, f: RoleFilter): boole
   switch (f) {
     case 'CUSTOMER': return u.role === 'CUSTOMER';
     case 'OWNER': return u.role === 'RESTAURANT_OWNER';
-    case 'STAFF': return u.role === 'RESTAURANT_STAFF' || u.role === 'DELIVERY_STAFF';
+    case 'STAFF': return u.role === 'RESTAURANT_MANAGER' || u.role === 'RESTAURANT_STAFF' || u.role === 'DELIVERY_STAFF';
     case 'ADMIN': return u.role === 'SUPER_ADMIN';
     default: return true;
   }
